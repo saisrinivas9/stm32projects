@@ -1,1 +1,44 @@
+#define STM32F401xE
+#include "stm32f4xx.h"
+#include<stdint.h>
+#define PIN5           (1U << 5)
+#define LED_PIN        PIN5
+
+// SysTick configuration values
+#define SYSTICK_LOAD_VALUE   16000     // For 1 ms delay (16 MHz clock)
+#define CTRL_ENABLE          (1U << 0)
+#define CTRL_CLKSRC          (1U << 2)
+#define CTRL_COUNTFLAG       (1U << 16)
+
+void systick_delay_ms(uint32_t delay_ms)
+{
+    // Configure SysTick
+    SysTick->LOAD = SYSTICK_LOAD_VALUE - 1;  // 1ms
+    SysTick->VAL = 0;                        // Reset current value
+    SysTick->CTRL = CTRL_ENABLE | CTRL_CLKSRC;
+
+    for(uint32_t i = 0; i < delay_ms; i++)
+    {
+        // Wait until COUNTFLAG is set
+        while((SysTick->CTRL & CTRL_COUNTFLAG) == 0);
+    }
+
+    SysTick->CTRL = 0; // Disable SysTick
+}
+
+int main(void){
+    // 1. Enable clock for GPIOA
+    RCC->AHB1ENR |= (1U << 0);
+
+    // 2. Configure PA5 as output (MODER5 = 01)
+    GPIOA->MODER &= ~(3U << (5 * 2));  // clear bits
+    GPIOA->MODER |=  (1U << (5 * 2));  // set 01
+
+    while (1)
+    {
+        GPIOA->ODR ^= LED_PIN;     // Toggle LED
+       systick_delay_ms(1000);    // 1 second delay
+    }
+    return 0;
+}
 
