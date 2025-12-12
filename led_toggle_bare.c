@@ -1,3 +1,4 @@
+//stm32f4 series
 #include <stdint.h>
 #define PERIPH_BASE       0x40000000U
 #define AHB1_OFFSET       0x00020000U
